@@ -1,4 +1,21 @@
 receivers:
+  sqlquery:
+    driver: postgres
+    datasource: "host=db port=5432 user=devtedsuser password=devtedspass sslmode=disable database=lcbo"
+    queries:
+      - sql: "SELECT COUNT(*) AS count FROM inventories WHERE product_id = 18 AND quantity = 0"
+        metrics:
+          - metric_name: stores.0heiniken
+            value_column: "count"
+  postgresql:
+    endpoint: db:5432
+    transport: tcp
+    username: devtedsuser
+    password: devtedspass
+    collection_interval: 10s
+    tls:
+      insecure: true
+
   tcplog/docker:
     listen_address: "0.0.0.0:2255"
     operators:
@@ -173,7 +190,7 @@ service:
       processors: [signozspanmetrics/cumulative, signozspanmetrics/delta, batch]
       exporters: [clickhousetraces]
     metrics:
-      receivers: [otlp]
+      receivers: [otlp, postgresql, sqlquery]
       processors: [batch]
       exporters: [clickhousemetricswrite]
     metrics/generic:
